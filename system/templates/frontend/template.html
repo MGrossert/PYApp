@@ -4,19 +4,19 @@
 <html> 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title><?=$TITLE?></title>
-<?	foreach (array_unique($HTML_HEADER_FILES['CSS']) AS $css) { ?>	<link rel="stylesheet" type="text/css" href="<?=$css?>"><?="\n";}?>
+	<title><?=$title?></title>
+<?#	foreach (array_unique($template->CSS) AS $css) { ?>	<link rel="stylesheet" type="text/css" href="<?=$css?>"><?="\n";}?>
 	<!--[if lt IE 9]><script src="http://ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script><![endif]-->
-<?	foreach (array_unique($HTML_HEADER_FILES['JS']) AS $js) { ?>	<script type="text/javascript" src="<?=$js?>"></script><?="\n";}?>
+<?#	foreach (array_unique($template->JS) AS $js) { ?>	<script type="text/javascript" src="<?=$js?>"></script><?="\n";}?>
 </head>
 <body>
 	<div class="page">
 		<div class="header">
-			<h1><?=strtoupper($TITLE)?></h1>
+			<h1><?=strtoupper($title)?></h1>
 		</div>
 		
 		<div class="content">
-			
+			<?=$content?>
 		</div>
 	</div>
 </body>

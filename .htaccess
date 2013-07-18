@@ -1,0 +1,9 @@
+ 
+# move unknown urls to the index.php
+rewriteengine on
+rewritecond %{request_filename} !-f
+rewriterule (.*) index.php [L]
+
+# fallback without mod_rewrite
+# may need to be adjusted
+ErrorDocument 404 /index.php

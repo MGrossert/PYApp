@@ -1,22 +1,29 @@
 <?php
 /**
  * PYApp
- *
+ * 
  * @package PYApp
  * @author Martin Grossert <martin.grossert@gmail.com>
- * @version 0.1.0
+ * @version 0.1.0 
  * @copyright Copyright (c) 2013, Martin Grossert
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license GNU GENERAL PUBLIC LICENSE
  */
 
 if (!defined("PY_START")) define("PY_START", true);
-else die (); // already started
+else die (); # already started
 
-require_once("./config.php");						// base conf
-require_once("lib/function.php");					// global functions
+print "<pre>";
 
-require_once("system/classes/system.php");			// system class
+# initalize System
+define("PY_MODE", "FE");
+require_once("system/initalize.php");
 
-$system = \PY\System::getInstance();
-$system->initalizeFrontend();
+print "\n\n";
+var_export(\PY\frontend::$PY);
+print "\n\n";
 
+$template = new PY\template('frontend\\default');
+
+
+
+print "</pre>";

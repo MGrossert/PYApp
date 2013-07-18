@@ -1,2 +1,8 @@
+# system configuration
 config.php
+
+# external librarys
 lib/*
+
+# editor
+*.session
