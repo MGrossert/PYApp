@@ -14,10 +14,6 @@ class py_user extends data_container_object {
 	#######################################
 	# INTERNAL VARS
 	
-	static public $overrideTable = "";
-	static public $fields = array()
-	static public $view = array()
-	
 	#######################################
 	# MAGIC METHODS
 	
@@ -27,3 +23,10 @@ class py_user extends data_container_object {
 	}
 	
 }
+
+py_user::field = [
+	'id' => [
+		'keys'	=> 'primary'
+		'sql'	=> 'INT (11) NOT NULL AUTO INCEMENT'
+	]
+];

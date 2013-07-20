@@ -8,7 +8,6 @@
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
-
 if (!defined("PY_START")) define("PY_START", true);
 else die (); # already started
 
