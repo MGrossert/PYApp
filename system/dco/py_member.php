@@ -1,6 +1,6 @@
 <?php
 /**
- * PY dcoUser
+ * PY dcoMember
  * 
  * @package PYApp
  * @author Martin Grossert <martin.grossert@gmail.com>
@@ -9,7 +9,7 @@
  * @license GNU GENERAL PUBLIC LICENSE
  */
 
-py_user::field = [
+py_member::field = [
 	'id' => [
 		'sql'	=> 'INT (11) NOT NULL AUTO INCEMENT'
 	]
@@ -27,7 +27,7 @@ py_user::field = [
 	]
 ];
 
-class py_user extends data_container_object {
+class py_member extends data_container_object {
 
 	#######################################
 	# INTERNAL VARS
