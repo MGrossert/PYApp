@@ -9,34 +9,33 @@
  * @license GNU GENERAL PUBLIC LICENSE
  */
 
-py_user::field = [
-	'id' => [
-		'sql'	=> 'INT (11) NOT NULL AUTO INCEMENT'
-	]
-,	'name'	=> [
-		'sql'	=> 'VARCHAR(25) NOT NULL'
-	,	'type'	=> 'text'
-	]
-,	'password'	=> [
-		'sql'	=> 'VARCHAR(25) NOT NULL'
-	,	'type'	=> 'password'
-	]
-,	'email'	=> [
-		'sql'	=> 'VARCHAR(50) NOT NULL'
-	,	'type'	=> 'text'
-	]
-];
-
 class py_user extends data_container_object {
 
 	#######################################
 	# INTERNAL VARS
 	
+	protected static $field = [
+		'id' => [
+			'sql'	=> 'INT (11) NOT NULL AUTO INCEMENT'
+		]
+	,	'name'	=> [
+			'sql'	=> 'VARCHAR(25) NOT NULL'
+		,	'type'	=> 'text'
+		]
+	,	'password'	=> [
+			'sql'	=> 'VARCHAR(25) NOT NULL'
+		,	'type'	=> 'password'
+		]
+	,	'email'	=> [
+			'sql'	=> 'VARCHAR(50) NOT NULL'
+		,	'type'	=> 'text'
+		]
+	];
+	
 	#######################################
 	# MAGIC METHODS
 	
-	# construct class
-	function __construct() {
+	protected function __initalize() {
 		
 	}
 	

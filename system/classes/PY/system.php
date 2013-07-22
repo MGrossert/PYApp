@@ -17,7 +17,7 @@ class system {
 
 	#######################################
 	# INTERNAL VARS
-	static $PY = array();
+	static $PY = [];
 	
 	#######################################
 	# MAGIC METHODS
@@ -48,15 +48,15 @@ class system {
 		}
 		# classes paths
 		static::$PY['CLASS_PATH'][] = 'system'.DIR_SEP.'classes';										# core classes
-		static::$PY['CLASSES'] = (isset(static::$PY['CLASSES']))?static::$PY['CLASSES']:array();		# class list
+		static::$PY['CLASS_PATH'][] = 'system'.DIR_SEP.'dco';											# data container
+		static::$PY['CLASSES'] = (isset(static::$PY['CLASSES']))?static::$PY['CLASSES']:[];		# class list
 		
 		# register autoloader
 		spl_autoload_register(__CLASS__.'::__autoload', true, true);
 		
 		# templates paths
 		static::$PY['TEMPLATE_PATH'][] = 'system'.DIR_SEP.'templates';									# core templates
-		static::$PY['TEMPLATE_PATH'][] = 'application'.DIR_SEP.'templates';								# application templates
-		static::$PY['TEMPLATES'] = (isset(static::$PY['TEMPLATES']))?static::$PY['TEMPLATES']:array();	# template list
+		static::$PY['TEMPLATES'] = (isset(static::$PY['TEMPLATES']))?static::$PY['TEMPLATES']:[];	# template list
 		
 		# try to load internal cache 
 		# later | may be one of the last
@@ -73,7 +73,7 @@ class system {
 		# load templates
 		# later, only if not cached
 		if (!is_array(static::$PY['TEMPLATE_PATH'])) 
-			throw new \Exception('TEMPLATE_PATH is\'nt an array!');
+			static::$PY['TEMPLATE_PATH'] = [];
 			
 		foreach(static::$PY['TEMPLATE_PATH'] AS $path) {
 			if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
@@ -112,6 +112,7 @@ class system {
 	
 	#	class autoload
 	static function __autoload($class) {
+		print "try to load $class\n";
 		$PY = &$GLOBALS['PY'];
 		$extensions = explode(",",spl_autoload_extensions());
 		
@@ -125,6 +126,7 @@ class system {
 				if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
 				foreach($extensions AS $ext) {
 					# if there is a namespace dir
+					print "search " .PY_PATH.DIR_SEP.$path.DIR_SEP.$filename.$ext ."\n";
 					if (is_file($file=PY_PATH.DIR_SEP.$path.DIR_SEP.$filename.$ext)) {
 						include_once($file);
 						if (class_exists($class, false)) return true;

@@ -12,10 +12,21 @@
 namespace PY;
 
 class data_container_object {
-
-	static public fields = array()
-	static public view = array()
+	use \Singleton;
+	
+	#######################################
+	# INTERNAL VARS
+	
+	protected static $view = [];
+	protected static $fields = [];
 	
 	
+	
+	#######################################
+	# MAGIC METHODS
+	
+	protected function __initialize() {
+		
+	}
 	
 }

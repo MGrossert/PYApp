@@ -21,8 +21,9 @@ print "\n\n";
 var_export(\PY\frontend::$PY);
 print "\n\n";
 
+date_default_timezone_set("Europe/Berlin");
 $template = new PY\template('frontend\\default');
-
+$py_user = py_user::getInstance();
 
 
 print "</pre>";
