@@ -15,17 +15,29 @@ class data_container_object {
 	use \Singleton;
 	
 	#######################################
-	# INTERNAL VARS
+	# TABLE DESCRIPTION
 	
+	protected static $name = '';
 	protected static $view = [];
+	protected static $index = [];
 	protected static $fields = [];
 	
+	# INTERNAL VARS
+	protected $db = [];
 	
 	
 	#######################################
 	# MAGIC METHODS
 	
 	protected function __initialize() {
+		$this->db = database::getInstance();
+		if (static::$name == '') static::$name = get_called_class();
+		
+		
+		# create on first use? or send a msg?
+		if (!$this->db->table(static::$name)->exist()) {
+			$this->db->table(static::$name)->fields(static::fields)->index(static::index)->create();
+		}
 		
 	}
 	

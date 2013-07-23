@@ -14,7 +14,7 @@ class py_user extends data_container_object {
 	#######################################
 	# INTERNAL VARS
 	
-	protected static $field = [
+	protected static $fields = [
 		'id' => [
 			'sql'	=> 'INT (11) NOT NULL AUTO INCEMENT'
 		]

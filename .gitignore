@@ -1,5 +1,5 @@
 # system configuration
-config.php
+system/config/server.php
 
 # external librarys
 lib/*

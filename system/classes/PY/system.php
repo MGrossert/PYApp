@@ -16,14 +16,18 @@ class system {
 	use \Singleton;
 
 	#######################################
-	# INTERNAL VARS
+	# STATIC VARS
 	static $PY = [];
+	
+	# INTERNAL VARS
+	public $database = null;
 	
 	#######################################
 	# MAGIC METHODS
 	
 	# construct class
 	protected function __initialize() {
+		if (!isset($GLOBALS['PY'])) $GLOBALS['PY'] = [];
 		static::$PY = $GLOBALS['PY'];
 		$GLOBALS['PY'] = &static::$PY;
 		
@@ -31,9 +35,9 @@ class system {
 		if (!is_null(static::$instance)) return false;
 		
 		# url 
-		static::$PY['static'] = $_SERVER["REQUEST_URI"];
-		static::$PY['static'] = str_replace("index.php", "", static::$PY['static']);
-		if (!defined("_static")) define("_static", static::$PY['static']);
+		self::$PY['self'] = $_SERVER["REQUEST_URI"];
+		self::$PY['self'] = str_replace("index.php", "", static::$PY['self']);
+		if (!defined("_SELF")) define("_SELF", static::$PY['self']);
 		
 		# output type
 		if (!isset(static::$PY['OUTPUT_TYPE'])) {
@@ -46,17 +50,14 @@ class system {
 				static::$PY['OUTPUT_TYPE'] = strtolower($_REQUEST['py_output']);
 			}
 		}
-		# classes paths
-		static::$PY['CLASS_PATH'][] = 'system'.DIR_SEP.'classes';										# core classes
-		static::$PY['CLASS_PATH'][] = 'system'.DIR_SEP.'dco';											# data container
-		static::$PY['CLASSES'] = (isset(static::$PY['CLASSES']))?static::$PY['CLASSES']:[];		# class list
 		
 		# register autoloader
+		static::$PY['CLASSES'] = (isset(static::$PY['CLASSES']))?static::$PY['CLASSES']:[];				# class list
 		spl_autoload_register(__CLASS__.'::__autoload', true, true);
 		
-		# templates paths
-		static::$PY['TEMPLATE_PATH'][] = 'system'.DIR_SEP.'templates';									# core templates
-		static::$PY['TEMPLATES'] = (isset(static::$PY['TEMPLATES']))?static::$PY['TEMPLATES']:[];	# template list
+		# templates paths , concept must be modified
+		#static::$PY['TEMPLATE_PATH'][] = 'system'.DIR_SEP.'templates';									# core templates
+		#static::$PY['TEMPLATES'] = (isset(static::$PY['TEMPLATES']))?static::$PY['TEMPLATES']:[];	# template list
 		
 		# try to load internal cache 
 		# later | may be one of the last
@@ -68,29 +69,40 @@ class system {
 		# later + only if not cached
 		
 		# load userconfig
-		# later + only if not cached
+		# later only if not cached
+		require_once(PY_ROOT.DIR_SEP.'system'.DIR_SEP.'config'.DIR_SEP.'server.php');
+		
+		# connect database
+		$dbInit = (isset(static::$PY['database']['initalize']))?static::$PY['database']['initalize']:false;
+		static::$PY['database']['initalize'] = false;
+		$this->database = \database::connect(static::$PY['database']);
+		if ($dbInit !== false) $this->database->query($dbInit);
+		
+		# load all internal dco?
+		$py_user = \py_user::getInstance();
 		
 		# load templates
-		# later, only if not cached
-		if (!is_array(static::$PY['TEMPLATE_PATH'])) 
-			static::$PY['TEMPLATE_PATH'] = [];
+		# !concept must be modified!
+		# later + only if not cached
+		// if (!is_array(static::$PY['TEMPLATE_PATH'])) 
+			// static::$PY['TEMPLATE_PATH'] = [];
 			
-		foreach(static::$PY['TEMPLATE_PATH'] AS $path) {
-			if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
-			foreach(scandir($basePath = PY_PATH.DIR_SEP.$path) AS $dir) {
-				if (substr($dir, 1) == ".") continue;	# ignore parent
-				#	ignore files, simple templates must be registerd
-				if (!is_dir($fullPath = $basePath.DIR_SEP.$dir)) continue;
-				#	ignore folders without config
-				if (!is_file($tplCnf = $fullPath.DIR_SEP.'config.ini')) continue;
-				# read config 
-				$config = parse_ini_file($tplCnf, true);
-				$name = ((isset($config['info']['category']))?$config['info']['category'].'\\':'')
-					 .	((isset($config['info']['name']))?$config['info']['name']:'default');
-				# set or override template
-				static::$PY['TEMPLATES'][$name] = $path.DIR_SEP.$dir;
-			}
-		}
+		// foreach(static::$PY['TEMPLATE_PATH'] AS $path) {
+			// if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
+			// foreach(scandir($basePath = PY_ROOT.DIR_SEP.$path) AS $dir) {
+				// if (substr($dir, 1) == ".") continue;	# ignore parent
+				// #	ignore files, simple templates must be registerd
+				// if (!is_dir($fullPath = $basePath.DIR_SEP.$dir)) continue;
+				// #	ignore folders without config
+				// if (!is_file($tplCnf = $fullPath.DIR_SEP.'config.ini')) continue;
+				// # read config 
+				// $config = parse_ini_file($tplCnf, true);
+				// $name = ((isset($config['info']['category']))?$config['info']['category'].'\\':'')
+					 // .	((isset($config['info']['name']))?$config['info']['name']:'default');
+				// # set or override template
+				// static::$PY['TEMPLATES'][$name] = $path.DIR_SEP.$dir;
+			// }
+		// }
 		
 		# initalize system callback
 		# later
@@ -104,15 +116,11 @@ class system {
 
 
 	}
-	###################################
-	
-	#	clone class
-    public function __clone(){}
+
 	###################################
 	
 	#	class autoload
 	static function __autoload($class) {
-		print "try to load $class\n";
 		$PY = &$GLOBALS['PY'];
 		$extensions = explode(",",spl_autoload_extensions());
 		
@@ -126,12 +134,11 @@ class system {
 				if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
 				foreach($extensions AS $ext) {
 					# if there is a namespace dir
-					print "search " .PY_PATH.DIR_SEP.$path.DIR_SEP.$filename.$ext ."\n";
-					if (is_file($file=PY_PATH.DIR_SEP.$path.DIR_SEP.$filename.$ext)) {
+					if (is_file($file=PY_ROOT.DIR_SEP.$path.DIR_SEP.$filename.$ext)) {
 						include_once($file);
 						if (class_exists($class, false)) return true;
 					# without a namespace dir
-					} elseif (is_file($file=PY_PATH.DIR_SEP.$path.DIR_SEP.basename($filename).$ext)) {
+					} elseif (is_file($file=PY_ROOT.DIR_SEP.$path.DIR_SEP.basename($filename).$ext)) {
 						include_once($file);
 						if (class_exists($class, false)) return true;
 					}
@@ -146,7 +153,7 @@ class system {
 		break; case (isset($PY['CLASSES'][$class])):
 			$filename = $PY['CLASSES'][$class];
 			foreach($extensions AS $ext) {
-				if (is_file($file=PY_PATH.DIR_SEP.$filename.$ext)) {
+				if (is_file($file=PY_ROOT.DIR_SEP.$filename.$ext)) {
 					include_once($file);
 					if (class_exists($class, false)) return true;
 				}

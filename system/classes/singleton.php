@@ -31,12 +31,12 @@ trait Singleton{
 	
     abstract protected function __initialize();
     final public static function &getInstance() {
-		$class = get_called_class();
 		# create if not exist
 		if (null === static::$instance)	
-			static::$instance = new $class();
+			static::$instance = new static();
 			
 		#check type
+		$class = get_called_class();
 		if (get_class(static::$instance) == $class || is_subclass_of(static::$instance, $class, false))
 			return static::$instance;
 		else
