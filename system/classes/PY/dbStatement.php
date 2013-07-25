@@ -137,13 +137,24 @@ class dbStatement {
 	function exist () {
 		static $stmt = null;
 		
-		$table = implode(".", array_filter([
-			$this->query['db']
-		,	$this->query['table']
-		]));
-		if ($stmt === null) $stmt = $this->db->prepare("show tables like ':t'");
-		$stmt->execute([':t' => $table]);
-		return ($stmt->rowCount() > 0);
+		# lookup Table
+		if ($this->query['table']!='') {
+			$name = implode(".", array_filter([
+				$this->query['db']
+			,	$this->query['table']
+			]));
+			if ($stmt === null) $stmt = $this->db->prepare("SHOW TABLES LIKE ':n'");
+			$stmt->execute([':n' => $name]);
+			return ($stmt->rowCount() > 0);
+			
+		# or database
+		} elseif ($this->query['table']!='') {
+			$name = $this->query['db'];
+			if ($stmt === null) $stmt = $this->db->prepare("SHOW DATABASES LIKE ':n'");
+			$stmt->execute([':n' => $name]);
+			return ($stmt->rowCount() > 0);
+			
+		}
 	}
 	
 	function fields($arr) {

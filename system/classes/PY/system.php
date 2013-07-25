@@ -128,9 +128,9 @@ class system {
 		# search known paths
 		default:
 			$filename = (DIR_SEP!="\\")?str_replace("\\", DIR_SEP, $class):$class;
-			if (!is_array($PY['CLASS_PATH']))
-				throw new \Exception('CLASS_PATH is\'nt an array!');
-			foreach($PY['CLASS_PATH'] AS $path) {
+			$paths = array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'])
+			if (!is_array($paths)) throw new \Exception('CLASS_PATH is\'nt an array!');
+			foreach($paths AS $path) {
 				if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
 				foreach($extensions AS $ext) {
 					# if there is a namespace dir

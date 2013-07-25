@@ -23,9 +23,8 @@ require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'system.php');			# 
 
 # System Paths
 $GLOBALS['PY']['CLASS_PATH'][] = 'system'.DIR_SEP.'classes';						# core classes
-# autoload like classes or preload?
-$GLOBALS['PY']['CLASS_PATH'][] = 'system'.DIR_SEP.'dco';							# data container
-$GLOBALS['PY']['DCO_PATH'][] = 'system'.DIR_SEP.'dco';								# data container
+# only autoload like classes or preload?
+$GLOBALS['PY']['MODEL_PATH'][] = 'system'.DIR_SEP.'models';							# core models
 
 # initalize core
 if (PY_MODE == 'BE') {

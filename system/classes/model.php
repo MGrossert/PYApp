@@ -1,6 +1,6 @@
 <?php	
 /** 
- * PY Data Container Object Alias
+ * PY Data Model
  *
  * @package PYApp
  * @author Martin Grossert <martin.grossert@gmail.com>
@@ -10,4 +10,4 @@
  */
 
 # only an alias
-class data_container_object extends \PY\data_container_object {}
+class model extends \PY\model {}

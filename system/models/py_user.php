@@ -9,11 +9,17 @@
  * @license GNU GENERAL PUBLIC LICENSE
  */
 
-class py_user extends data_container_object {
+class py_user extends model {
 
 	#######################################
 	# INTERNAL VARS
 	
+	protected static $type = 'db';
+	protected static $index = [
+		'id'		=> 'primary'
+	,	'name'		=> 'index'
+	,	'email'		=> 'index'
+	];
 	protected static $fields = [
 		'id' => [
 			'sql'	=> 'INT (11) NOT NULL AUTO INCEMENT'
@@ -33,10 +39,6 @@ class py_user extends data_container_object {
 	];
 	
 	#######################################
-	# MAGIC METHODS
-	
-	protected function __initalize() {
-		
-	}
+	# ADDITIONAL METHODS
 	
 }
