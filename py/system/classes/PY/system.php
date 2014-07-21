@@ -54,6 +54,9 @@ class system {
 		}
 		
 		# register autoloader
+		static::$PY['CLASS_PATH'] = (isset(static::$PY['CLASS_PATH']))?static::$PY['CLASS_PATH']:[];				# class list
+		static::$PY['MODEL_PATH'] = (isset(static::$PY['MODEL_PATH']))?static::$PY['MODEL_PATH']:[];				# class list
+		static::$PY['TRAIT_PATH'] = (isset(static::$PY['TRAIT_PATH']))?static::$PY['TRAIT_PATH']:[];				# class list
 		static::$PY['CLASSES'] = (isset(static::$PY['CLASSES']))?static::$PY['CLASSES']:[];				# class list
 		spl_autoload_register(__CLASS__.'::__autoload', true, true);
 		
@@ -131,7 +134,7 @@ class system {
 		default:
 			$filename = (DIR_SEP!="\\")?str_replace("\\", DIR_SEP, $class):$class;
 			$paths = array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'])
-			if (!is_array($paths)) throw new Exception("CLASS_PATH is'nt an array!");
+			if (!is_array($paths)) throw new \Exception("CLASS_PATH is'nt an array!");
 			foreach($paths AS $path) {
 				if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
 				foreach($extensions AS $ext) {
