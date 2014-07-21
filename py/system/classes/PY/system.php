@@ -28,10 +28,7 @@ class system {
 	
 	# construct class
 	protected function __initialize() {
-		// TODO: prüfe ob nützlich
-		if (!isset($GLOBALS['PY'])) $GLOBALS['PY'] = [];
-		static::$PY = $GLOBALS['PY'];
-		$GLOBALS['PY'] = &static::$PY;
+		static::$PY = [];
 		
 		# only on first load
 		if (!is_null(static::$instance)) return false;
@@ -54,13 +51,17 @@ class system {
 		}
 		
 		# register autoloader
-		static::$PY['CLASS_PATH'] = (isset(static::$PY['CLASS_PATH']))?static::$PY['CLASS_PATH']:[];				# class list
-		static::$PY['MODEL_PATH'] = (isset(static::$PY['MODEL_PATH']))?static::$PY['MODEL_PATH']:[];				# class list
-		static::$PY['TRAIT_PATH'] = (isset(static::$PY['TRAIT_PATH']))?static::$PY['TRAIT_PATH']:[];				# class list
+		static::$PY['CLASS_PATH'] = (isset(static::$PY['CLASS_PATH']))?static::$PY['CLASS_PATH']:[];	# class paths
+		array_push(static::$PY['CLASS_PATH'], "system".DIR_SEP."classes".DIR_SEP);
+		static::$PY['MODEL_PATH'] = (isset(static::$PY['MODEL_PATH']))?static::$PY['MODEL_PATH']:[];	# model paths
+		array_push(static::$PY['MODEL_PATH'], "system".DIR_SEP."models".DIR_SEP);
+		static::$PY['TRAIT_PATH'] = (isset(static::$PY['TRAIT_PATH']))?static::$PY['TRAIT_PATH']:[];	# trait paths
+		array_push(static::$PY['TRAIT_PATH'], "system".DIR_SEP."traits".DIR_SEP);
 		static::$PY['CLASSES'] = (isset(static::$PY['CLASSES']))?static::$PY['CLASSES']:[];				# class list
 		spl_autoload_register(__CLASS__.'::__autoload', true, true);
 		
-		# templates paths , concept must be modified
+		
+		# templates paths # TODO: concept must be modified
 		#static::$PY['TEMPLATE_PATH'][] = 'system'.DIR_SEP.'templates';									# core templates
 		#static::$PY['TEMPLATES'] = (isset(static::$PY['TEMPLATES']))?static::$PY['TEMPLATES']:[];	# template list
 		
@@ -75,16 +76,13 @@ class system {
 		
 		# load userconfig
 		# later only if not cached
-		require_once(PY_ROOT.DIR_SEP.'system'.DIR_SEP.'config'.DIR_SEP.'server.php');
+		// require_once(PY_ROOT.DIR_SEP.'system'.DIR_SEP.'config'.DIR_SEP.'server.php');
 		
 		# connect database
 		$dbInit = (isset(static::$PY['database']['initalize']))?static::$PY['database']['initalize']:false;
 		static::$PY['database']['initalize'] = false;
-		$this->database = \database::connect(static::$PY['database']);
-		if ($dbInit !== false) $this->database->query($dbInit);
-		
-		# load all internal dco?
-		$py_user = \py_user::getInstance();
+		// $this->database = \database::connect(static::$PY['database']);
+		// if ($dbInit !== false) $this->database->query($dbInit);
 		
 		# load templates
 		# !concept must be modified!
@@ -133,8 +131,10 @@ class system {
 		# search known paths
 		default:
 			$filename = (DIR_SEP!="\\")?str_replace("\\", DIR_SEP, $class):$class;
-			$paths = array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'])
-			if (!is_array($paths)) throw new \Exception("CLASS_PATH is'nt an array!");
+			$paths = array_unique(array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'], $PY['TRAIT_PATH']));
+			if (!is_array($paths)) {
+				throw new \Exception("CLASS_PATH isn't an array!");
+			}
 			foreach($paths AS $path) {
 				if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
 				foreach($extensions AS $ext) {
@@ -155,6 +155,7 @@ class system {
 			# do nothing
 		
 		# search known classes
+		# caching mechanismus
 		break; case (isset($PY['CLASSES'][$class])):
 			$filename = $PY['CLASSES'][$class];
 			foreach($extensions AS $ext) {
@@ -167,7 +168,14 @@ class system {
 		
 		return false;
 	}
+	
 	###################################
+	
+	#	storage Management
+	
+	static function getStorage(string $connection_string = null) {
+	
+	}
 	
 	#######################################
 	# METHODS

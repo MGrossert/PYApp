@@ -12,34 +12,24 @@
 namespace PY;
 
 class model {
-	use \Singleton;
+	// use \Singleton;
 	
 	#######################################
 	# TABLE DESCRIPTION
 	
-	protected static $name = '';
+	// protected static $name = '';
 	
 	# INTERNAL VARS
-	protected $db = null;
+	// protected $db = null;
 	
 	
 	#######################################
 	# MAGIC METHODS
 	
-	protected function __initialize() {
-		switch ( strtolower(static::$type) ) {
-		default:
-		break; case "db":
-			// $this->db = database::getInstance();
-			// if (static::$name == '') static::$name = get_called_class();
-			
-			// # create on first use? or send a msg?
-			// if (!$this->db->table(static::$name)->exist()) {
-				// $this->db->table(static::$name)->fields(static::$fields)->index(static::$index)->create();
-			// }
-		break; case "file:
-			
-		}
+	// protected function __initialize() {
+	public function __construct() {
+		$system == \PY\system::getInstance();
+		
 	}
 	
 }

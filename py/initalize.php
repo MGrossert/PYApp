@@ -17,8 +17,8 @@ if (!defined("PY_ROOT"))	define("PY_ROOT", __DIR__);
 require_once('function.php');														# core functions
 
 # Base Classes
-require_once('system'.DIR_SEP.'classes'.DIR_SEP.'singleton.php');					# singleton trait
-require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'base.php');			# objectBase class
+require_once('system'.DIR_SEP.'traits'.DIR_SEP.'singleton.php');					# singleton trait
+require_once('system'.DIR_SEP.'traits'.DIR_SEP.'PY'.DIR_SEP.'base.php');			# objectBase class
 require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'system.php');			# system class
 
 # initalize core

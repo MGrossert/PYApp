@@ -1,22 +1,32 @@
 <?php
-/**
- * PY dcoUser
- * 
+/** 
+ * PYObjectBase
+ *
  * @package PYApp
  * @author Martin Grossert <martin.grossert@gmail.com>
- * @version 0.1.0 
+ * @version 0.1.0
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
 
-class py_user extends model {
+namespace PY;
 
+trait base {
 	#######################################
 	# INTERNAL VARS
-	
-	public $id = 0;
-	
+	protected $PY = array();
+
 	#######################################
-	# ADDITIONAL METHODS
+	# MAGIC METHODS
+	
+	# construct class
+	public function construct() {
+		# initalize globals
+		$this->PY = &$GLOBALS['PY'];
+	
+	}
+
+	#######################################
+	# METHODS
 	
 }
