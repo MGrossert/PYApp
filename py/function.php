@@ -12,11 +12,10 @@
 
 # check if variable is an assoc array
 if (!function_exists("is_assoc")) {
-
 	function is_assoc($arr, $strict = false) {
 		switch(true) {
 		default:
-			return (bool)count(array_filter(array_keys($array), 'is_string'));
+			return (bool) count(array_filter(array_keys($array), 'is_string'));
 		break; case (!is_array($arr)):
 			return false;
 		break; case ($strict):

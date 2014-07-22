@@ -17,14 +17,18 @@ class system {
 
 	#######################################
 	# CONSTANTS
+	const SYSTEM = "system";
+	
 	const CLASS_DIR = "classes";
 	const MODEL_DIR = "models";
 	const TRAIT_DIR = "traits";
 	const TEMPLATE_DIR = "templates";
 	
+	const TYPES = 4;
 	const TYPE_CORE = 0;
-	const TYPE_APP = 4;
-	const TYPE_MODULE = 8;
+	const TYPE_ELEMENT = 1;
+	const TYPE_APP = 2;
+	const TYPE_MODULE = 3;
 	
 	# STATIC VARS
 	static $PY = [];
@@ -38,89 +42,48 @@ class system {
 	
 	# construct class
 	protected function __initialize() {
-		static::$PY = [];
+		$PY = &static::$PY;
 		
 		# only on first load
 		if (!is_null(static::$instance)) return false;
 		
 		# url 
-		static::$PY['self'] = $_SERVER["REQUEST_URI"];
-		self::$PY['self'] = str_replace("index.php", "", static::$PY['self']);
-		if (!defined("_SELF")) define("_SELF", static::$PY['self']);
+		$PY['SELF'] = $_SERVER["REQUEST_URI"];
+		$PY['SELF'] = str_replace("index.php", "", $PY['SELF']);
+		if (!defined("_SELF")) define("_SELF", $PY['SELF']);
 		
 		# output type
-		if (!isset(static::$PY['OUTPUT_TYPE'])) {
+		if (!isset($PY['OUTPUT_TYPE'])) {
 			switch(true) {
 			default: 
-				static::$PY['OUTPUT_TYPE'] = "html";
+				$PY['OUTPUT_TYPE'] = "html";
 			break; case (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH']=="XMLHttpRequest"):
-				static::$PY['OUTPUT_TYPE'] = "js";
-			break; case (isset($_REQUEST['py_output'])):
-				static::$PY['OUTPUT_TYPE'] = strtolower($_REQUEST['py_output']);
+				$PY['OUTPUT_TYPE'] = "js";
+			break; case (false):
+				$PY['OUTPUT_TYPE'] = "xml";
+			break; case (isset($_REQUEST['py_output_type'])):
+				$PY['OUTPUT_TYPE'] = strtolower($_REQUEST['py_output_type']);
 			}
 		}
 		
 		# try to load internal cache 
-		# later | may be one of the last
+		# TODO: later | may be one of the last
 		
 		# read structure
-		if (true) {				# TODO: CACHING DISABLE SCAN!
+		# TODO: later only if not cached
+		if (true) {				
 			$this->readStructure();
 		}
 		
 		# register autoloader
 		spl_autoload_register(__CLASS__.'::__autoload', true, true);
 		
-		# load application
-		# later + only if not cached
+		# load user config file
+		# TODO: later
 		
-		# load modules
-		# later + only if not cached
+		# initialize system callback / Hooks
+		# TODO: later
 		
-		# load userconfig
-		# later only if not cached
-		// require_once(PY_ROOT.DIR_SEP.'system'.DIR_SEP.'config'.DIR_SEP.'server.php');
-		
-		# connect database
-		$dbInit = (isset(static::$PY['database']['initalize']))?static::$PY['database']['initalize']:false;
-		static::$PY['database']['initalize'] = false;
-		// $this->database = \database::connect(static::$PY['database']);
-		// if ($dbInit !== false) $this->database->query($dbInit);
-		
-		# load templates
-		# !concept must be modified!
-		# later + only if not cached
-		// if (!is_array(static::$PY['TEMPLATE_PATH'])) 
-			// static::$PY['TEMPLATE_PATH'] = [];
-			
-		// foreach(static::$PY['TEMPLATE_PATH'] AS $path) {
-			// if (substr($path, -1)==DIR_SEP) $path = substr($path, 0, -1);
-			// foreach(scandir($basePath = PY_ROOT.DIR_SEP.$path) AS $dir) {
-				// if (substr($dir, 1) == ".") continue;	# ignore parent
-				// #	ignore files, simple templates must be registerd
-				// if (!is_dir($fullPath = $basePath.DIR_SEP.$dir)) continue;
-				// #	ignore folders without config
-				// if (!is_file($tplCnf = $fullPath.DIR_SEP.'config.ini')) continue;
-				// # read config 
-				// $config = parse_ini_file($tplCnf, true);
-				// $name = ((isset($config['info']['category']))?$config['info']['category'].'\\':'')
-					 // .	((isset($config['info']['name']))?$config['info']['name']:'default');
-				// # set or override template
-				// static::$PY['TEMPLATES'][$name] = $path.DIR_SEP.$dir;
-			// }
-		// }
-		
-		# initalize system callback
-		# later
-		
-		# load database
-		# move into class
-		# PDO  -> class 
-		// $strDbLocation = DB_TYPE.':dbname='.DB_NAME.';host='.DB_HOST.';charset=UTF-8';
-		// static::$PY['db'] = new PDO($strDbLocation, DB_USERNAME, DB_PASSWORD);
-		// if (defined("DB_INITALIZE_QUERY") && DB_INITALIZE_QUERY != "") static::$PY['db']->query(DB_INITALIZE_QUERY);
-
-
 	}
 
 	###################################
@@ -172,16 +135,12 @@ class system {
 		return false;
 	}
 	
-	###################################
-	
-	#	storage Management
-	
-	static function getStorage(string $connection_string = null) {
-	
-	}
-	
 	#######################################
 	# METHODS
+	
+	function initialize() {
+		
+	}
 	
 	function readStructure ($return = false) {
 		if (!$return)
@@ -195,23 +154,22 @@ class system {
 		$PY['TEMPLATE_PATH'][]	= (isset($PY['TEMPLATE_PATH']))?$PY['TEMPLATE_PATH']:[];	# core templates
 		$PY['TEMPLATES']		= (isset($PY['TEMPLATES']))?$PY['TEMPLATES']:[];			# template list
 		
-		$load = [];
+		$load = array_fill (0, static::TYPES+1, []);
 		foreach(scandir(PY_ROOT) AS $mod) {
 			if (substr($mod, 0, 1) == ".") 
 				continue;	# skip hidden & system
 			if (!is_dir($path = PY_ROOT.DIR_SEP.$mod)) 
 				continue;	# skip files
-			if (array_search($mod, $PY['MODULES']) !== false) 
+			if (isset($PY['MODULES'][$mod])) 
 				continue;	# skip loaded
 			
 			if (is_file($confFile = $path.DIR_SEP."module.json")) {
-				array_push($PY['MODULES'], $mod);
 				# load module config
-				$conf = json_decode(file_get_contents($confFile), true);
+				$PY['MODULES'][$mod] = $conf = json_decode(file_get_contents($confFile), true);
 				# cache requirements
 				$typeName = strtoupper(isset($conf['type'])?$conf['type']:'module');
 				$type = (defined(__CLASS__ ."::TYPE_$typeName"))?constant(__CLASS__ ."::TYPE_$typeName"):static::TYPE_MODULE;
-				$load[$type][$mod] = ($mod == __CLASS__)?[]:[__CLASS__];
+				$load[$type][$mod] = ($mod == static::SYSTEM)?[]:[static::SYSTEM];
 				if (isset($conf['require'])) {
 					if (is_array($conf['require'])) {
 						$load[$type]['mod'] = array_merge($load[$type]['mod'], $conf['require']);
@@ -225,32 +183,46 @@ class system {
 					
 				// GET DIRECTORYS
 				$class_dir = isset($conf['class_dir'])?$conf['class_dir']:static::CLASS_DIR;
-				if (is_dir($class_dir)) 
-					array_push($PY['CLASS_PATH'], dir.DIR_SEP.$class_dir);
+				if (is_dir(PY_ROOT.DIR_SEP.$mod.DIR_SEP.$class_dir)) 
+					array_push($PY['CLASS_PATH'], $mod.DIR_SEP.$class_dir);
 				$model_dir = isset($conf['model_dir'])?$conf['model_dir']:static::MODEL_DIR;
-				if (is_dir($model_dir)) 
-					array_push($PY['MODEL_PATH'], dir.DIR_SEP.$model_dir);
+				if (is_dir(PY_ROOT.DIR_SEP.$mod.DIR_SEP.$model_dir)) 
+					array_push($PY['MODEL_PATH'], $mod.DIR_SEP.$model_dir);
 				$trait_dir = isset($conf['trait_dir'])?$conf['trait_dir']:static::TRAIT_DIR;
-				if (is_dir($trait_dir)) 
-					array_push($PY['TRAIT_PATH'], dir.DIR_SEP.$trait_dir);
+				if (is_dir(PY_ROOT.DIR_SEP.$mod.DIR_SEP.$trait_dir)) 
+					array_push($PY['TRAIT_PATH'], $mod.DIR_SEP.$trait_dir);
 				$template_dir = isset($conf['template_dir'])?$conf['TEMPLATE_DIR']:static::TEMPLATE_DIR;
-				if (is_dir($template_dir)) 
-					array_push($PY['TEMPLATE_PATH'], dir.DIR_SEP.$template_dir);
+				if (is_dir(PY_ROOT.DIR_SEP.$mod.DIR_SEP.$template_dir)) 
+					array_push($PY['TEMPLATE_PATH'], $mod.DIR_SEP.$template_dir);
 				
 			}
 		}
 		
 		$PY['LOADING']			= (isset($PY['LOADING']))?$PY['LOADING']:[];				# loading pipeline
-		for ($p=0; $p < 10; $p++) {
+		for ($p=0; $p < static::TYPES; $p++) {
 			if (!isset($load[$p]))
 				continue;	# skip unused
 			
 			$lastCount = PHP_INT_MAX;
-			while (($c = count($load[$p]) > 0) && $c != $lastCount) {
-				
+			while (($c = count($load[$p])) > 0 && $c != $lastCount) {
 				$lastCount = $c;
+				foreach($load[$p] AS $mod => $req) {
+					$loading = true;
+					foreach($req AS $idx => $reqMod) {
+						if ($mod == $reqMod) continue;
+						if (array_search($reqMod, $PY['LOADING']) === false) 
+							$loading = false;
+					}
+					if ($loading) {
+						array_push($PY['LOADING'], $mod);
+						unset($load[$p][$mod]);
+					}
+				}
 			}
 			
+			// move unused to next stage
+			$load[$p+1] = array_merge($load[$p+1], $load[$p]);
+			unset($load[$p]);
 		}
 		
 		if ($return)

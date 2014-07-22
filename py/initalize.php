@@ -9,11 +9,11 @@
  * @license GNU GENERAL PUBLIC LICENSE
  */ 
  
-if (!defined('PY_START')) die (); # exit, if not started
+if (!defined('PY_START'))	die (); # exit, if not started
 if (!defined('DIR_SEP'))	define('DIR_SEP', DIRECTORY_SEPARATOR);
 if (!defined("PY_ROOT"))	define("PY_ROOT", __DIR__);
 
-
+print "<pre>";
 require_once('function.php');														# core functions
 
 # Base Classes
@@ -32,4 +32,5 @@ break; case "BE":
 	require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'backend.php');	# backend class
 	$backend = PY\backend::getInstance();	
 }
-$system = PY\system::getInstance();	
+$system = PY\system::getInstance();
+$system->initialize();
