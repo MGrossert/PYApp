@@ -12,11 +12,10 @@
 namespace PY;
 
 class model {
-	// use \Singleton;
 	
 	#######################################
 	# TABLE DESCRIPTION
-	protected static $name = '';
+	// protected static $name = '';
 	
 	# INTERNAL VARS
 	protected $DB = null;
@@ -27,7 +26,7 @@ class model {
 	
 	// protected function __initialize() {
 	public function __construct() {
-		$this->DB == system::getStorage();
+		#$this->DB == system::getStorage();
 		
 	}
 	

@@ -45,6 +45,7 @@ class system {
 		$PY = &static::$PY;
 		
 		# only on first load
+		ob_start();
 		if (!is_null(static::$instance)) return false;
 		
 		# url 
@@ -106,11 +107,11 @@ class system {
 				foreach($extensions AS $ext) {
 					# if there is a namespace dir
 					if (is_file($file=PY_ROOT.DIR_SEP.$path.DIR_SEP.$filename.$ext)) {
-						include_once($file);
+						require_once($file);
 						if (class_exists($class, false)) return true;
 					# without a namespace dir
 					} elseif (is_file($file=PY_ROOT.DIR_SEP.$path.DIR_SEP.basename($filename).$ext)) {
-						include_once($file);
+						require_once($file);
 						if (class_exists($class, false)) return true;
 					}
 				}
@@ -138,8 +139,20 @@ class system {
 	#######################################
 	# METHODS
 	
-	function initialize() {
-		
+	function initialize($mode = null) {
+		$PY = &static::$PY;
+		$this->sandbox();
+		foreach($PY['LOADING'] AS $module) {
+			$mod = isset($PY['MODULES'][$module])?$PY['MODULES'][$module]:[];
+			
+		}
+	}
+	
+	function sandbox($file) {
+		$system = $this;
+		ob_start();
+		include($file);
+		return ob_get_clean();
 	}
 	
 	function readStructure ($return = false) {
