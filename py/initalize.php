@@ -22,11 +22,14 @@ require_once('system'.DIR_SEP.'traits'.DIR_SEP.'PY'.DIR_SEP.'base.php');			# obj
 require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'system.php');			# system class
 
 # initalize core
-if (PY_MODE == 'BE') {
-	require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'backend.php');	# backend class
-	$frontend = PY\backend::getInstance();	
-} elseif (PY_MODE == 'BE') {
+switch(PY_MODE) {
+default: 
+	# nothing  
+break; case "FE":
 	require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'frontend.php');	# frontend class
 	$frontend = PY\frontend::getInstance();	
+break; case "BE":
+	require_once('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'backend.php');	# backend class
+	$backend = PY\backend::getInstance();	
 }
 $system = PY\system::getInstance();	

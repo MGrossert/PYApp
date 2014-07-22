@@ -16,11 +16,10 @@ class model {
 	
 	#######################################
 	# TABLE DESCRIPTION
-	
-	// protected static $name = '';
+	protected static $name = '';
 	
 	# INTERNAL VARS
-	// protected $db = null;
+	protected $DB = null;
 	
 	
 	#######################################
@@ -28,7 +27,7 @@ class model {
 	
 	// protected function __initialize() {
 	public function __construct() {
-		$system == \PY\system::getInstance();
+		$this->DB == system::getStorage();
 		
 	}
 	

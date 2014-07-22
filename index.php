@@ -8,10 +8,10 @@
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
+print "<pre>";
 if (!defined("PY_START")) define("PY_START", true);
 else die (); # already started
 
-print "<pre>";
 # initalize System
 define("PY_MODE", "FE");
 require_once("py/initalize.php");
