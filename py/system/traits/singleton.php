@@ -1,8 +1,8 @@
 <?php
 /** 
- * SingletonTrait
+ * Singleton Trait
  *
- * @package SingletonTrait
+ * @package Traits
  * @author Martin Grossert <martin.grossert@gmail.com>
  * @version 0.1.0
  * @copyright Copyright (c) 2013, Martin Grossert
