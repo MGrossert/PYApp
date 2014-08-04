@@ -8,11 +8,10 @@
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */ 
- 
+define("START", microtime(true));
 if (!defined('PY_START'))	die (); # exit, if not started
-if (!defined('DIR_SEP'))	define('DIR_SEP', DIRECTORY_SEPARATOR);
-if (!defined("PY_ROOT"))	define("PY_ROOT", __DIR__);
-echo "<pre>";
+const DIR_SEP = DIRECTORY_SEPARATOR;
+const PY_ROOT = __DIR__;
 require_once('function.php');														# core functions
 
 # Base Classes

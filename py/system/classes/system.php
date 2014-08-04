@@ -37,6 +37,47 @@ class system
 	public $storage = null;
 	public $config = null;
 	
+	###################################
+	# AUTOLOAD
+	
+	static function __autoload ($class)
+	{
+		$PY = &static::$PY;
+		$extensions = explode(",", spl_autoload_extensions());
+		
+		if (class_exists($class, false))
+			return true;
+		
+		$classes = array_unique(array_merge($PY['CLASS'], $PY['MODEL'], $PY['TRAIT']));
+		if (isset($classes[$class])) {
+			$file = PY_ROOT . DIR_SEP . $classes[$class];
+			require($file);
+			if (class_exists($class, false))
+				return true;
+		}
+		
+		$filename = (DIR_SEP != "\\") ? str_replace("\\", DIR_SEP, $class) : $class;
+		$paths = array_unique(array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'], $PY['TRAIT_PATH']));
+		foreach ($paths AS $path) {
+			if (substr($path, -1) == DIR_SEP)
+				$path = substr($path, 0, -1);
+			foreach ($extensions AS $ext) {
+				# if there is a namespace dir
+				if (is_file($file = PY_ROOT . DIR_SEP . $path . DIR_SEP . $filename . $ext)) {
+					require($file);
+					if (class_exists($class, false))
+						return true;
+					# without a namespace dir
+				} elseif (is_file($file = PY_ROOT . DIR_SEP . $path . DIR_SEP . basename($filename) . $ext)) {
+					require($file);
+					if (class_exists($class, false))
+						return true;
+				}
+			}
+		}
+		
+	}
+	
 	#######################################
 	# MAGIC METHODS
 	
@@ -52,8 +93,7 @@ class system
 			return false;
 		
 		# url
-		$PY['SELF'] = $_SERVER["REQUEST_URI"];
-		$PY['SELF'] = str_replace("index.php", "", $PY['SELF']);
+		$PY['SELF'] = str_replace("index.php", "", $_SERVER["REQUEST_URI"]);
 		if ( !defined("_SELF"))
 			define("_SELF", $PY['SELF']);
 		
@@ -78,61 +118,12 @@ class system
 		# TODO: later | may be one of the last
 		
 		# read structure, if not cached
-		# TODO: later only if not cached
-		if (true) {
+		if ( !isset($PY['MODULES'])) {
 			$this->readStructure();
 		}
 		
 		# register autoloader
 		spl_autoload_register(__CLASS__ . '::__autoload', true, true);
-		
-		# TODO: later
-		
-		# load config
-		# TODO: cache
-		$this->config = config::getInstance();
-		
-	}
-	
-	###################################
-	
-	#	class autoload
-	
-	static function __autoload ($class)
-	{
-		$PY = &static::$PY;
-		$extensions = explode(",", spl_autoload_extensions());
-		
-		if (class_exists($class, false))
-			return true;
-		
-		$classes = array_unique(array_merge($PY['CLASS'], $PY['MODEL'], $PY['TRAIT']));
-		if (isset($classes[$class])) {
-			$file = PY_ROOT . DIR_SEP . $classes[$class];
-			include_once($file);
-			if (class_exists($class, false))
-				return true;
-		}
-		
-		$filename = (DIR_SEP != "\\") ? str_replace("\\", DIR_SEP, $class) : $class;
-		$paths = array_unique(array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'], $PY['TRAIT_PATH']));
-		foreach ($paths AS $path) {
-			if (substr($path, -1) == DIR_SEP)
-				$path = substr($path, 0, -1);
-			foreach ($extensions AS $ext) {
-				# if there is a namespace dir
-				if (is_file($file = PY_ROOT . DIR_SEP . $path . DIR_SEP . $filename . $ext)) {
-					require_once($file);
-					if (class_exists($class, false))
-						return true;
-					# without a namespace dir
-				} elseif (is_file($file = PY_ROOT . DIR_SEP . $path . DIR_SEP . basename($filename) . $ext)) {
-					require_once($file);
-					if (class_exists($class, false))
-						return true;
-				}
-			}
-		}
 		
 	}
 	
@@ -142,13 +133,89 @@ class system
 	function initialize ($mode = null)
 	{
 		$PY = &static::$PY;
+		$PY['MESSAGE'] = (isset($PY['MESSAGE'])) ? $PY['MESSAGE'] : []; # hook list
+		
+		# load config
+		# TODO: cache
+		$system = $this;
+		$this->config = config::getInstance();
 		
 		foreach ($PY['LOADING'] AS $module) {
 			$mod = isset($PY['MODULES'][$module]) ? $PY['MODULES'][$module] : [];
+			if ( !is_dir($path = PY_ROOT . DIR_SEP . $module))
+				continue;
 			
+			if (is_file($initFile = $path . DIR_SEP . "initialize.php")) {
+				ob_start();
+				require $initFile;
+				$ret = ob_get_clean();
+				if (!empty($ret)) 
+					$PY['MESSAGE'][] = $ret;
+			}
 		}
 		
 	}
+	
+	#######################################
+	# HOOKS
+	
+	function registerHook ($hook, $desc = "", $vars = array())
+	{
+		$PY = &static::$PY;
+		$PY['HOOKS'] = (isset($PY['HOOKS'])) ? $PY['HOOKS'] : []; # hook list
+		$HOOKS = &static::$PY['HOOKS'];
+		$HOOKS[$hook] = array(
+		    "hook" => $hook,
+		    "desc" => $desc,
+		    "vars" => $vars,
+		    "func" => array()
+		);
+	}
+	
+	function listHook ()
+	{
+		$HOOKS = &static::$PY['HOOKS'];
+		$hookList = array();
+		foreach ($HOOKS AS $name => $hook) {
+			$hookList[$name] = $hook["desc"];
+		}
+		return $hookList;
+	}
+	
+	function getHookParam ($hook)
+	{
+		if (isset($HOOKS[$hook])) {
+			return $HOOKS[$hook]["vars"];
+		}
+		return;
+	}
+	
+	function registerHookCallback ($hook, $func)
+	{
+		$HOOKS = &static::$PY['HOOKS'];
+		if ( !is_callable(func))
+			return false;
+		
+		if (isset($HOOKS[$hook])) {
+			return (array_push($HOOKS[$hook]["func"], $func) === 1);
+		}
+		return false;
+	}
+	
+	function callHook ($hook, $vars = array())
+	{
+		$HOOKS = &static::$PY['HOOKS'];
+		$ret = array();
+		if (isset($HOOKS[$hook])) {
+			foreach ($HOOKS[$hook]["func"] as $idx => $func) {
+				$ret[] = call_user_func_array($func, $vars);
+			}
+		}
+		return $ret;
+	}
+	
+	#######################################
+	# STRUCTURE
 	
 	function readStructure ($return = false)
 	{
