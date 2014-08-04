@@ -157,6 +157,14 @@ class system
 	}
 	
 	#######################################
+	# CRON
+	
+	function registerCron () {
+		
+	}
+	
+	
+	#######################################
 	# HOOKS
 	
 	function registerHook ($hook, $desc = "", $vars = array())
