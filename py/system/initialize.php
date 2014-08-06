@@ -7,7 +7,7 @@ Const PY_HOOK_INITIALIZED = "py-initialized";
 $system->registerHook(PY_HOOK_INITIALIZED, "Called after initialized.");
 
 ##############################################
-# 
+#  
 ##############################################
 
 
