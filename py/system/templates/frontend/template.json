@@ -1,3 +1,0 @@
-<?/*?><html><head><meta http-equiv="refresh" content="0;url=/"></head><body></body></html><?*/?>
-<?header("Content-type: application/json");?>
-<?=json_encode(fix_array($json_content))?>
