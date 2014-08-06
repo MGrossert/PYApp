@@ -1,4 +1,6 @@
 {
+	"name" : "system"
+	"type" : "core",
 	"author" : "Martin Grossert",
-	"type" : "core"
+	"desc" : ""
 }
