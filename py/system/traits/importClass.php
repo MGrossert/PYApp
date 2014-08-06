@@ -1,5 +1,5 @@
 <?php
-/** 
+/**
  * ImportClass Trait
  *
  * @package Traits
@@ -12,25 +12,27 @@
 trait importClass {
 
 	function importClass($class) {
-		if (!class_exists($class)) 
+		if (!class_exists($class))
 			return false;
 			
 		$traits = class_uses($class);
-		if (!is_array($traits)) 
+		if (!is_array($traits))
 			return false;
 		
 		$obj = null;
 		if (array_search("singleton", $traits) !== false) {
 			try {
 				$obj = $class::getInstance();
-			} catch (e) {}
+			} catch (Exception $e) {
+				
+			}
 		} else {
 			try {
 				$obj = new $class();
-			} catch (e) {}
+			} catch (Exception $e) {}
 		}
 		
-		if (is_null($obj)) 
+		if (is_null($obj))
 			return false;
 		
 		$refC = new \ReflectionClass($obj);
