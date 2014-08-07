@@ -1,26 +1,25 @@
 <?php
 
 namespace PY {
+	use \ReflectionClass;
 
-use \ReflectionClass;
+	class ServiceProvider extends ObjectList {
 
-class ServiceProvider extends ObjectList
-{
-	var $service;
-	
-	function register ($service, $interface)
-	{
-		$refl = new ReflectionClass($interface);
-		if ( !$refl->isInterface())
-			continue;
-		
-		#
+
+		function register ($name, $interface) {
+			$refl = new ReflectionClass($interface);
+			if ( !$refl->isInterface())
+				continue;
+				
+				$service = new Service($interface);
+				$this->register($name, $service);
+
+			#
+		}
+
+
+		function get ($service) {
+		}
 	}
-	
-	
-	function get ($set) {
-		
-	}
-}
 
 }
