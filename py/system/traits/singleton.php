@@ -57,5 +57,10 @@ trait Singleton
 			return false;
 	}
 	
+	final public static function reset ()
+	{
+		static::$instance = null;
+	}
+	
 }
  

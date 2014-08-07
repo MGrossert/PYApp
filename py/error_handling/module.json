@@ -1,0 +1,10 @@
+{
+    "name":"error_handling",
+    "dir":"error_handling",
+    "type":"module",
+    "author":"Martin Grossert",
+    "desc":"",
+    "require":[
+        "log"
+    ]
+}

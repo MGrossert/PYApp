@@ -14,10 +14,8 @@ const DIR_SEP = DIRECTORY_SEPARATOR;
 const PY_ROOT = __DIR__;
 require_once('function.php');	# core functions
 
-# Base Classes
-require_once('system'.DIR_SEP.'traits'.DIR_SEP.'Singleton.php');	# singleton trait
-require_once('system'.DIR_SEP.'classes'.DIR_SEP.'System.php');	# system class
-
 # initalize core
+include_once('system'.DIR_SEP.'classes'.DIR_SEP.'System.php');	# system class
+use PY\System;
 $system = System::getInstance();
-$system->initialize(PY_MODE);
+$system->initialize();

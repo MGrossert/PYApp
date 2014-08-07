@@ -1,5 +1,7 @@
 <?php
 
+namespace PY {
+
 class Hook extends ObjectList
 {
 	var $name;
@@ -24,4 +26,6 @@ class Hook extends ObjectList
 		}
 		return $ret;
 	}
+}
+
 }

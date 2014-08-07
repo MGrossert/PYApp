@@ -1,3 +1,7 @@
 {
-	"type" : "app"
+    "name":"default application",
+    "dir":"application",
+    "type":"app",
+    "author":"Martin Grossert",
+    "desc":""
 }

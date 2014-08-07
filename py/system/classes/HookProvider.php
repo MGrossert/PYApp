@@ -1,6 +1,10 @@
 <?php
 
-class HookList extends ObjectList
+namespace PY {
+
+use \Singleton;
+
+class HookProvider extends ObjectList
 {
 	use Singleton;
 	
@@ -28,4 +32,6 @@ class HookList extends ObjectList
 		$hook = $this->get($name);
 		return ($hook) ? $hook->register($func) : false;
 	}
+}
+
 }

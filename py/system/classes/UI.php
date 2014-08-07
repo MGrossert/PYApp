@@ -1,5 +1,9 @@
 <?php
 
+namespace PY {
+	
+use \Singleton;
+
 class UI
 {
 	use Singleton;
@@ -37,4 +41,6 @@ class UI
 		
 	}
 	
+}
+
 }

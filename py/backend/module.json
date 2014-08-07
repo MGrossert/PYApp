@@ -1,6 +1,7 @@
 {
-	"name" : "backend"
-	"type" : "app",
-	"author" : "Martin Grossert",
-	"desc" : ""
+    "name":"backend application",
+    "dir":"backend",
+    "type":"app",
+    "author":"Martin Grossert",
+    "desc":""
 }

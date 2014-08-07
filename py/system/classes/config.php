@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PYConfig
  *
@@ -8,15 +9,16 @@
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
- 
-class Config {
+
+class Config
+{
 	# config is a Singleton
 	use \Singleton;
-
-	function __initialize() {
+	
+	function __initialize ()
+	{
 		
-		foreach(system::$PY['MODULES'] AS $module => $config) {
-			
+		foreach (system::$PY['MODULES'] AS $module => $config) {
 		}
 		
 	}

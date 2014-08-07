@@ -1,5 +1,7 @@
 <?php
 
+namespace PY {
+
 class ObjectList
 {
 	private $objects = [];
@@ -35,4 +37,6 @@ class ObjectList
 		return $this->objects;
 	}
 	
+}
+
 }

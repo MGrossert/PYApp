@@ -1,5 +1,12 @@
 <?php
 
+namespace PY {
+
+include_once('system' . DIR_SEP . 'interfaces' . DIR_SEP . 'SingletonInterface.php'); # singleton trait
+use \SingletonInterface;
+include_once('system' . DIR_SEP . 'traits' . DIR_SEP . 'Singleton.php'); # singleton trait
+use \Singleton;
+
 /**
  * PYSystem
  *
@@ -9,28 +16,31 @@
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
-class System
+class System implements SingletonInterface
 {
 	# System is a Singleton
-	use \Singleton;
+	use Singleton;
 	
 	#######################################
 	# CONSTANTS
 	const SYSTEM = "system";
 	
-	const CLASS_DIR = "classes";
-	const MODEL_DIR = "models";
-	const TRAIT_DIR = "traits";
-	const TEMPLATE_DIR = "templates";
+	const DIR_CLASS = "classes";
+	const DIR_INTERFACE = "interfaces";
+	const DIR_MODEL = "models";
+	const DIR_TRAIT = "traits";
+	const DIR_TEMPLATE = "templates";
 	
-	const TYPES = 4;
 	const TYPE_CORE = 0;
-	const TYPE_ELEMENT = 1;
-	const TYPE_MODULE = 2;
-	const TYPE_APP = 3;
+	const TYPE_FRAMEWORK = 1;
+	const TYPE_ELEMENT = 2;
+	const TYPE_MODULE = 3;
+	const TYPE_APP = 4;
 	
 	# STATIC VARS
-	static $PY = [];
+	private static $PY = [];
+	private static $TYPE_COUNT = null;
+	var $provider = null;
 	
 	###################################
 	# AUTOLOAD
@@ -70,7 +80,6 @@ class System
 				}
 			}
 		}
-		
 	}
 	
 	#######################################
@@ -81,6 +90,11 @@ class System
 	protected function __initialize ()
 	{
 		$PY = &static::$PY;
+		
+		if (static::$TYPE_COUNT == null) {
+			$reflection = new \ReflectionClass(get_class());
+			static::$TYPE_COUNT = count(preg_grep_keys("/^TYPE_/i", $reflection->getConstants()));
+		}
 		
 		# try to load internal structure cache
 		# TODO: later | may be one of the last
@@ -93,6 +107,7 @@ class System
 		# register autoloader
 		spl_autoload_register(__CLASS__ . '::__autoload', true, true);
 		
+		$this->provider = new ServiceProvider();
 	}
 	
 	function initialize ($mode = null)
@@ -100,9 +115,8 @@ class System
 		$PY = &static::$PY;
 		$PY['MESSAGE'] = (isset($PY['MESSAGE'])) ? $PY['MESSAGE'] : []; # message list
 		$system = $this;
-		
 		define("PY_HOOK_INITIALIZED", "py-initialized");
-		HookList::getInstance()->register(PY_HOOK_INITIALIZED);
+		HookProvider::getInstance()->register(PY_HOOK_INITIALIZED);
 		foreach ($PY['LOADING'] AS $module) {
 			$mod = isset($PY['MODULES'][$module]) ? $PY['MODULES'][$module] : [];
 			if ( !is_dir($path = PY_ROOT . DIR_SEP . $module))
@@ -116,8 +130,11 @@ class System
 					$PY['MESSAGE'][] = $ret;
 			}
 		}
-		HookList::getInstance()->call(PY_HOOK_INITIALIZED);
+		HookProvider::getInstance()->call(PY_HOOK_INITIALIZED);
 	}
+	
+	#######################################
+	# SERVICE PROVIDER
 	
 	#######################################
 	# STRUCTURE
@@ -129,19 +146,20 @@ class System
 		
 		$PY['MODULES'] = (isset($PY['MODULES'])) ? $PY['MODULES'] : []; # module list
 		$PY['LOADING'] = (isset($PY['LOADING'])) ? $PY['LOADING'] : []; # loading pipeline
-		$types = array(
+		$class_types = array(
 		    'CLASS',
+		    'INTERFACE',
 		    'MODEL',
 		    'TRAIT'
 		);
-		foreach ($types AS $type) {
+		foreach ($class_types AS $type) {
 			$PY["{$type}_PATH"] = (isset($PY["{$type}_PATH"])) ? $PY["{$type}_PATH"] : []; # class paths
 			$PY[$type] = (isset($PY[$type])) ? $PY[$type] : []; # class list
 		}
 		$PY['TEMPLATE_PATH'] = (isset($PY['TEMPLATE_PATH'])) ? $PY['TEMPLATE_PATH'] : []; # core templates
 		$PY['TEMPLATES'] = (isset($PY['TEMPLATES'])) ? $PY['TEMPLATES'] : []; # template list
 		
-		$load = array_fill(0, static::TYPES + 1, []);
+		$load = array_fill(0, static::$TYPE_COUNT + 1, []);
 		foreach (scandir(PY_ROOT) AS $mod) {
 			if (substr($mod, 0, 1) == ".")
 				continue;
@@ -163,25 +181,25 @@ class System
 				    [static::SYSTEM];
 				if (isset($conf['require'])) {
 					if (is_array($conf['require'])) {
-						$load[$type]['mod'] = array_merge($load[$type]['mod'], $conf['require']);
+						$load[$type][$mod] = array_merge($load[$type][$mod], $conf['require']);
 					} elseif (is_string($conf['require'])) {
-						array_push($load[$type]['mod'], $conf['require']);
+						array_push($load[$type][$mod], $conf['require']);
 					}
 				}
 				
 				// read registered classes
-				foreach ($types AS $type) {
+				foreach ($class_types AS $type) {
 					if (isset($conf[$type]) && is_array($conf[$type]))
 						$PY[$type] = array_merge($PY[$type], $conf[$type]);
 				}
 				
 				// GET DIRECTORYS
-				foreach ($types AS $type) {
-					$dir = isset($conf[$cnf_name = (strtolower($type) . "_dir")]) ? $conf[$cnf_name] : constant("static::{$type}_DIR");
+				foreach ($class_types AS $type) {
+					$dir = isset($conf[$cnf_name = (strtolower($type) . "_dir")]) ? $conf[$cnf_name] : constant("static::DIR_{$type}");
 					if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $dir))
 						array_push($PY["{$type}_PATH"], $mod . DIR_SEP . $dir);
 				}
-				$template_dir = isset($conf['template_dir']) ? $conf['TEMPLATE_DIR'] : static::TEMPLATE_DIR;
+				$template_dir = isset($conf['template_dir']) ? $conf['TEMPLATE_DIR'] : static::DIR_TEMPLATE;
 				if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $template_dir))
 					array_push($PY['TEMPLATE_PATH'], $mod . DIR_SEP . $template_dir);
 				
@@ -189,7 +207,7 @@ class System
 		}
 		
 		$extensions = explode(",", spl_autoload_extensions());
-		foreach ($types AS $type) {
+		foreach ($class_types AS $type) {
 			foreach ($PY["{$type}_PATH"] AS $path) {
 				if (substr($path, -1) == DIR_SEP)
 					$path = substr($path, 0, -1);
@@ -205,7 +223,7 @@ class System
 			}
 		}
 		
-		for ($p = 0; $p < static::TYPES; $p++ ) {
+		for ($p = 0; $p < static::$TYPE_COUNT; $p++ ) {
 			if ( !isset($load[$p]))
 				continue;
 			# skip unused
@@ -237,4 +255,6 @@ class System
 			return $PY;
 	}
 	
+}
+
 }
