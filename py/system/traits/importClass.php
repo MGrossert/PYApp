@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ImportClass Trait
  *
@@ -8,15 +9,17 @@
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
- 
-trait importClass {
 
-	function importClass($class) {
-		if (!class_exists($class))
+trait ImportClass
+{
+	
+	function importClass ($class)
+	{
+		if ( !class_exists($class))
 			return false;
-			
+		
 		$traits = class_uses($class);
-		if (!is_array($traits))
+		if ( !is_array($traits))
 			return false;
 		
 		$obj = null;
@@ -24,7 +27,6 @@ trait importClass {
 			try {
 				$obj = $class::getInstance();
 			} catch (Exception $e) {
-				
 			}
 		} else {
 			try {
@@ -41,7 +43,6 @@ trait importClass {
 		
 		return true;
 	}
-
+	
 }
-
  

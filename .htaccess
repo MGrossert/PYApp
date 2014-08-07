@@ -1,8 +1,11 @@
  
 # move unknown urls to the index.php
-rewriteengine on
-rewritecond %{request_filename} !-f
-rewriterule (.*) index.php [L]
+RewriteEngine On
+
+RewriteRule ^py/$ py/index.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*) index.php [L]
 
 # fallback without mod_rewrite
 # may need to be adjusted

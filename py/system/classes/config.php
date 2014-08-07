@@ -1,5 +1,5 @@
 <?php
-/** 
+/**
  * PYConfig
  *
  * @package PYApp
@@ -9,7 +9,7 @@
  * @license GNU GENERAL PUBLIC LICENSE
  */
  
-class config {
+class Config {
 	# config is a Singleton
 	use \Singleton;
 

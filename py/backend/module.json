@@ -1,6 +1,6 @@
 {
 	"name" : "backend"
-	"type" : "core",
+	"type" : "app",
 	"author" : "Martin Grossert",
 	"desc" : ""
 }
