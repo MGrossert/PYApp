@@ -43,6 +43,12 @@ trait Singleton
 	
 	abstract protected function __initialize ();
 	
+	/**
+	 * returns the one object from this class
+	 *
+	 * @return Ambigous <boolean, this>
+	 */
+	
 	final public static function &getInstance ()
 	{
 		# create if not exist
@@ -57,9 +63,9 @@ trait Singleton
 			return false;
 	}
 	
-	final public static function reset ()
+	final public static function resetInstance ()
 	{
-		static::$instance = null;
+		unset(static::$instance);
 	}
 	
 }

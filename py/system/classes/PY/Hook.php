@@ -14,8 +14,13 @@ class Hook extends ObjectList
 	function register ($func)
 	{
 		$idx = uniqid("hook_", true);
-		$ret = parent::register($idx, $func);
+		$ret = $this->add($idx, $func);
 		return $ret ? $idx : false;
+	}
+	
+	function unregister ($name)
+	{
+		$this->remove($name);
 	}
 	
 	function call ($param = array())
@@ -26,6 +31,7 @@ class Hook extends ObjectList
 		}
 		return $ret;
 	}
+	
 }
 
 }

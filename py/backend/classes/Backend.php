@@ -14,7 +14,6 @@ class Backend extends UI
 	function initialize ()
 	{
 
-		
 	}
 	
 }

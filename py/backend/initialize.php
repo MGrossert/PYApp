@@ -2,13 +2,10 @@
 ##############################################
 #
 ##############################################
-if (PY_MODE == "BE") {
-	
-	$callable = array(
-	    Backend::getInstance(),
-	    "initialize"
-	);
-	
-	PY\HookProvider::getInstance()->registerCall(PY_HOOK_INITIALIZED, $callable);
-	
-}
+
+$callable = array(
+    Backend::getInstance(),
+    "initialize"
+);
+
+$system->service()->get('hook')->register(PY_HOOK_INITIALIZED, $callable);

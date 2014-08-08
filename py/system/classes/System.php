@@ -2,9 +2,9 @@
 
 namespace PY {
 
-include_once('system' . DIR_SEP . 'interfaces' . DIR_SEP . 'SingletonInterface.php'); # singleton trait
-use \SingletonInterface;
-include_once('system' . DIR_SEP . 'traits' . DIR_SEP . 'Singleton.php'); # singleton trait
+include_once(PY_ROOT . DIR_SEP . 'system' . DIR_SEP . 'interfaces' . DIR_SEP . 'SystemInterface.php'); # System Interface
+include_once(PY_ROOT . DIR_SEP . 'system' . DIR_SEP . 'traits' . DIR_SEP . 'Singleton.php'); # singleton trait
+use \SystemInterface;
 use \Singleton;
 
 /**
@@ -16,10 +16,13 @@ use \Singleton;
  * @copyright Copyright (c) 2013, Martin Grossert
  * @license GNU GENERAL PUBLIC LICENSE
  */
-class System implements SingletonInterface
+class System implements \SystemInterface
 {
 	# System is a Singleton
-	use Singleton;
+	use Singleton {
+		getInstance as protected __getInstance;
+		resetInstance as protected;
+	}
 	
 	#######################################
 	# CONSTANTS
@@ -40,29 +43,57 @@ class System implements SingletonInterface
 	# STATIC VARS
 	private $PY = [];
 	private $TYPE_COUNT = null;
-	var $provider = null;
+	private $CLASS_TYPES = array(
+	    'CLASS',
+	    'INTERFACE',
+	    'MODEL',
+	    'TRAIT'
+	);
+	private $autoload = null;
+	private $service = null;
+	private $initialized = false;
+	
+	###################################
+	#
+	
+	/**
+	 * returns the system object
+	 *
+	 * @return \SystemInterface
+	 */
+	
+	static function getInstance ()
+	{
+		return static::__getInstance();
+	}
 	
 	###################################
 	# AUTOLOAD
 	
-	static function __autoload ($class)
+	function __autoload ($class)
 	{
 		$PY = &$this->PY;
 		$extensions = explode(",", spl_autoload_extensions());
 		
-		if (class_exists($class, false))
+		if (class_exists($class, false) || interface_exists($class, false))
 			return true;
 		
-		$classes = array_unique(array_merge($PY['CLASS'], $PY['MODEL'], $PY['TRAIT']));
+		$classes = $paths = [];
+		foreach ($this->CLASS_TYPES as $idx => $type) {
+			$classes = array_merge($classes, $PY[$type]);
+			$paths = array_merge($paths, $PY[$type . '_PATH']);
+		}
+		
+		$classes = array_unique($classes);
 		if (isset($classes[$class])) {
 			$file = PY_ROOT . DIR_SEP . $classes[$class];
 			require($file);
-			if (class_exists($class, false))
+			if (class_exists($class, false) || interface_exists($class, false))
 				return true;
 		}
 		
 		$filename = (DIR_SEP != "\\") ? str_replace("\\", DIR_SEP, $class) : $class;
-		$paths = array_unique(array_merge($PY['CLASS_PATH'], $PY['MODEL_PATH'], $PY['TRAIT_PATH']));
+		$paths = array_unique($paths);
 		foreach ($paths AS $path) {
 			if (substr($path, -1) == DIR_SEP)
 				$path = substr($path, 0, -1);
@@ -70,12 +101,12 @@ class System implements SingletonInterface
 				# if there is a namespace dir
 				if (is_file($file = PY_ROOT . DIR_SEP . $path . DIR_SEP . $filename . $ext)) {
 					require($file);
-					if (class_exists($class, false))
+					if (class_exists($class, false) || interface_exists($class, false))
 						return true;
 					# without a namespace dir
 				} elseif (is_file($file = PY_ROOT . DIR_SEP . $path . DIR_SEP . basename($filename) . $ext)) {
 					require($file);
-					if (class_exists($class, false))
+					if (class_exists($class, false) || interface_exists($class, false))
 						return true;
 				}
 			}
@@ -85,16 +116,21 @@ class System implements SingletonInterface
 	#######################################
 	# MAGIC METHODS
 	
-	# construct class
+	# de/construct class
+	
+	function __destruct ()
+	{
+		
+		spl_autoload_unregister($this->autoload);
+		
+	}
 	
 	protected function __initialize ()
 	{
 		$PY = &$this->PY;
 		
-		if ($this->TYPE_COUNT == null) {
-			$reflection = new \ReflectionClass(get_class());
-			$this->TYPE_COUNT = count(preg_grep_keys("/^TYPE_/i", $reflection->getConstants()));
-		}
+		$reflection = new \ReflectionClass(get_class());
+		$this->TYPE_COUNT = count(preg_grep_keys("/^TYPE_/i", $reflection->getConstants()));
 		
 		# try to load internal structure cache
 		# TODO: later | may be one of the last
@@ -105,18 +141,34 @@ class System implements SingletonInterface
 		}
 		
 		# register autoloader
-		spl_autoload_register(__CLASS__ . '::__autoload', true, true);
+		$this->autoload = array(
+		    $this,
+		    '__autoload'
+		);
+		spl_autoload_register($this->autoload, true, true);
 		
-		$this->provider = new ServiceProvider();
+		# setup service registry
+		$this->service = new ServiceRegistry();
+		
+		# setup hooks
+		$this->service()->prepare("hook", '\HookRegistryInterface', new HookRegistry());
+		
+		# setup initialized hook
+		define("PY_HOOK_INITIALIZED", "py-initialized");
+		$this->service()->get('hook')->prepare(PY_HOOK_INITIALIZED);
 	}
 	
-	function initialize ($mode = null)
+	function initialize ()
 	{
+		if ($this->initialized)
+			return false;
+		
+		# TODO: capsule ?
 		$PY = &$this->PY;
-		$PY['MESSAGE'] = (isset($PY['MESSAGE'])) ? $PY['MESSAGE'] : []; # message list
-		$system = $this;
-		define("PY_HOOK_INITIALIZED", "py-initialized");
-		HookProvider::getInstance()->register(PY_HOOK_INITIALIZED);
+		$this->PY['MESSAGE'] = (isset($PY['MESSAGE'])) ? $PY['MESSAGE'] : []; # message list
+		
+		# initialize all modules
+		$system = System::getInstance();
 		foreach ($PY['LOADING'] AS $module) {
 			$mod = isset($PY['MODULES'][$module]) ? $PY['MODULES'][$module] : [];
 			if ( !is_dir($path = PY_ROOT . DIR_SEP . $module))
@@ -130,11 +182,19 @@ class System implements SingletonInterface
 					$PY['MESSAGE'][] = $ret;
 			}
 		}
-		HookProvider::getInstance()->call(PY_HOOK_INITIALIZED);
+		$system->service()->get('hook')->call(PY_HOOK_INITIALIZED);
+		
+		$this->initialized = true;
+		return true;
 	}
 	
 	#######################################
 	# SERVICE PROVIDER
+	
+	function service ()
+	{
+		return $this->service;
+	}
 	
 	#######################################
 	# STRUCTURE
@@ -146,13 +206,7 @@ class System implements SingletonInterface
 		
 		$PY['MODULES'] = (isset($PY['MODULES'])) ? $PY['MODULES'] : []; # module list
 		$PY['LOADING'] = (isset($PY['LOADING'])) ? $PY['LOADING'] : []; # loading pipeline
-		$class_types = array(
-		    'CLASS',
-		    'INTERFACE',
-		    'MODEL',
-		    'TRAIT'
-		);
-		foreach ($class_types AS $type) {
+		foreach ($this->CLASS_TYPES AS $type) {
 			$PY["{$type}_PATH"] = (isset($PY["{$type}_PATH"])) ? $PY["{$type}_PATH"] : []; # class paths
 			$PY[$type] = (isset($PY[$type])) ? $PY[$type] : []; # class list
 		}
@@ -188,13 +242,13 @@ class System implements SingletonInterface
 				}
 				
 				// read registered classes
-				foreach ($class_types AS $type) {
+				foreach ($this->CLASS_TYPES AS $type) {
 					if (isset($conf[$type]) && is_array($conf[$type]))
 						$PY[$type] = array_merge($PY[$type], $conf[$type]);
 				}
 				
 				// GET DIRECTORYS
-				foreach ($class_types AS $type) {
+				foreach ($this->CLASS_TYPES AS $type) {
 					$dir = isset($conf[$cnf_name = (strtolower($type) . "_dir")]) ? $conf[$cnf_name] : constant("static::DIR_{$type}");
 					if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $dir))
 						array_push($PY["{$type}_PATH"], $mod . DIR_SEP . $dir);
@@ -207,12 +261,15 @@ class System implements SingletonInterface
 		}
 		
 		$extensions = explode(",", spl_autoload_extensions());
-		foreach ($class_types AS $type) {
+		foreach ($this->CLASS_TYPES AS $type) {
 			foreach ($PY["{$type}_PATH"] AS $path) {
 				if (substr($path, -1) == DIR_SEP)
 					$path = substr($path, 0, -1);
-				foreach (scandir(PY_ROOT . DIR_SEP . $path) AS $file) {
-					if (array_search("." . pathinfo($file, PATHINFO_EXTENSION), $extensions) !== false) {
+				
+				// 				foreach (scandir(PY_ROOT . DIR_SEP . $path) AS $file) {
+				foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(PY_ROOT . DIR_SEP . $path, \FilesystemIterator::SKIP_DOTS)) as $filePath => $fileObj) {
+					if (array_search("." . pathinfo($filePath, PATHINFO_EXTENSION), $extensions) !== false) {
+						$file = str_replace(PY_ROOT . DIR_SEP . $path. DIR_SEP, "", $filePath);
 						$base = substr($file, 0, strpos($file, "."));
 						$filePath = $path . DIR_SEP . $file;
 						if ( !isset($PY[$type][$base])) {
@@ -253,6 +310,8 @@ class System implements SingletonInterface
 		
 		if ($return)
 			return $PY;
+		
+		return true;
 	}
 	
 }
