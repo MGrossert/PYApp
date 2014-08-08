@@ -38,8 +38,8 @@ class System implements SingletonInterface
 	const TYPE_APP = 4;
 	
 	# STATIC VARS
-	private static $PY = [];
-	private static $TYPE_COUNT = null;
+	private $PY = [];
+	private $TYPE_COUNT = null;
 	var $provider = null;
 	
 	###################################
@@ -47,7 +47,7 @@ class System implements SingletonInterface
 	
 	static function __autoload ($class)
 	{
-		$PY = &static::$PY;
+		$PY = &$this->PY;
 		$extensions = explode(",", spl_autoload_extensions());
 		
 		if (class_exists($class, false))
@@ -89,11 +89,11 @@ class System implements SingletonInterface
 	
 	protected function __initialize ()
 	{
-		$PY = &static::$PY;
+		$PY = &$this->PY;
 		
-		if (static::$TYPE_COUNT == null) {
+		if ($this->TYPE_COUNT == null) {
 			$reflection = new \ReflectionClass(get_class());
-			static::$TYPE_COUNT = count(preg_grep_keys("/^TYPE_/i", $reflection->getConstants()));
+			$this->TYPE_COUNT = count(preg_grep_keys("/^TYPE_/i", $reflection->getConstants()));
 		}
 		
 		# try to load internal structure cache
@@ -112,7 +112,7 @@ class System implements SingletonInterface
 	
 	function initialize ($mode = null)
 	{
-		$PY = &static::$PY;
+		$PY = &$this->PY;
 		$PY['MESSAGE'] = (isset($PY['MESSAGE'])) ? $PY['MESSAGE'] : []; # message list
 		$system = $this;
 		define("PY_HOOK_INITIALIZED", "py-initialized");
@@ -142,7 +142,7 @@ class System implements SingletonInterface
 	function readStructure ($return = false)
 	{
 		if ( !$return)
-			$PY = &static::$PY;
+			$PY = &$this->PY;
 		
 		$PY['MODULES'] = (isset($PY['MODULES'])) ? $PY['MODULES'] : []; # module list
 		$PY['LOADING'] = (isset($PY['LOADING'])) ? $PY['LOADING'] : []; # loading pipeline
@@ -159,7 +159,7 @@ class System implements SingletonInterface
 		$PY['TEMPLATE_PATH'] = (isset($PY['TEMPLATE_PATH'])) ? $PY['TEMPLATE_PATH'] : []; # core templates
 		$PY['TEMPLATES'] = (isset($PY['TEMPLATES'])) ? $PY['TEMPLATES'] : []; # template list
 		
-		$load = array_fill(0, static::$TYPE_COUNT + 1, []);
+		$load = array_fill(0, $this->TYPE_COUNT + 1, []);
 		foreach (scandir(PY_ROOT) AS $mod) {
 			if (substr($mod, 0, 1) == ".")
 				continue;
@@ -223,7 +223,7 @@ class System implements SingletonInterface
 			}
 		}
 		
-		for ($p = 0; $p < static::$TYPE_COUNT; $p++ ) {
+		for ($p = 0; $p < $this->TYPE_COUNT; $p++ ) {
 			if ( !isset($load[$p]))
 				continue;
 			# skip unused

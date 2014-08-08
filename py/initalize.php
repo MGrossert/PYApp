@@ -12,10 +12,10 @@ define("START", microtime(true));
 if (!defined('PY_START'))	die (); # exit, if not started
 const DIR_SEP = DIRECTORY_SEPARATOR;
 const PY_ROOT = __DIR__;
-require_once('function.php');	# core functions
+require('function.php');	# core functions
 
 # initalize core
-include_once('system'.DIR_SEP.'classes'.DIR_SEP.'System.php');	# system class
+include('system'.DIR_SEP.'classes'.DIR_SEP.'System.php');	# system class
 use PY\System;
 $system = System::getInstance();
 $system->initialize();

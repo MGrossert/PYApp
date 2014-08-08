@@ -12,5 +12,4 @@ if (!defined("PY_START")) define("PY_START", true);
 else die (); # already started
 
 # initalize System
-define("PY_MODE", "FE");
 include_once("py/initalize.php");

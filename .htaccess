@@ -2,7 +2,7 @@
 # move unknown urls to the index.php
 RewriteEngine On
 
-RewriteRule ^py/$ py/index.php [L]
+#RewriteRule ^py/$ py/index.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule (.*) index.php [L]
