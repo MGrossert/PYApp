@@ -49,6 +49,12 @@ class System implements \SystemInterface
 	    'MODEL',
 	    'TRAIT'
 	);
+	private $OUTPUT_TYPES = array(
+	    "php",
+	    "html",
+	    "html5",
+	    "json",
+	);
 	private $autoload = null;
 	private $service = null;
 	private $initialized = false;
@@ -115,6 +121,16 @@ class System implements \SystemInterface
 	
 	#######################################
 	# MAGIC METHODS
+	
+	function __set_state ($export)
+	{
+		return $this->PY;
+	}
+	
+	function __toString ()
+	{
+		return var_export($this->PY, true);
+	}
 	
 	# de/construct class
 	
@@ -197,7 +213,37 @@ class System implements \SystemInterface
 	}
 	
 	#######################################
+	# TEMPLATE PROVIDER
+	
+	function getTemplate ($view)
+	{
+		if ( empty($view)) {
+			return false;
+		}
+		
+		if ( !isset($this->PY['TEMPLATES'][$view])) {
+			return false;
+		}
+		
+		$path = $this->PY['TEMPLATES'][$view];
+		foreach ($this->OUTPUT_TYPES as $ext) {
+			if (is_file(PY_ROOT . DIR_SEP . $path . "." . $ext)) {
+				return PY_ROOT . DIR_SEP . $path . "." . $ext;
+			}
+		}
+		return false;
+	}
+	
+	#######################################
 	# STRUCTURE
+	
+	function getStructure ()
+	{
+		if (empty($this->PY))
+			$this->readStructure;
+		
+		return $PY;
+	}
 	
 	function readStructure ($return = false)
 	{
@@ -214,6 +260,7 @@ class System implements \SystemInterface
 		$PY['TEMPLATES'] = (isset($PY['TEMPLATES'])) ? $PY['TEMPLATES'] : []; # template list
 		
 		$load = array_fill(0, $this->TYPE_COUNT + 1, []);
+		$extensions = explode(",", spl_autoload_extensions());
 		foreach (scandir(PY_ROOT) AS $mod) {
 			if (substr($mod, 0, 1) == ".")
 				continue;
@@ -241,45 +288,50 @@ class System implements \SystemInterface
 					}
 				}
 				
-				// read registered classes
+				// read manuell registered classes
 				foreach ($this->CLASS_TYPES AS $type) {
 					if (isset($conf[$type]) && is_array($conf[$type]))
 						$PY[$type] = array_merge($PY[$type], $conf[$type]);
 				}
 				
-				// GET DIRECTORYS
+				// GET CLASS DIRECTORYS & CLASSES
 				foreach ($this->CLASS_TYPES AS $type) {
 					$dir = isset($conf[$cnf_name = (strtolower($type) . "_dir")]) ? $conf[$cnf_name] : constant("static::DIR_{$type}");
-					if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $dir))
+					if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $dir)) {
 						array_push($PY["{$type}_PATH"], $mod . DIR_SEP . $dir);
+						if (substr($path = $mod . DIR_SEP . $dir, -1) == DIR_SEP)
+							$path = substr($path, 0, -1);
+						foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(PY_ROOT . DIR_SEP . $path, \FilesystemIterator::SKIP_DOTS)) as $filePath => $fileObj) {
+							if (array_search("." . pathinfo($filePath, PATHINFO_EXTENSION), $extensions) !== false) {
+								$file = str_replace(PY_ROOT . DIR_SEP . $path . DIR_SEP, "", $filePath);
+								if ( !isset($PY[$type][$base = substr($file, 0, strpos($file, "."))])) {
+									$PY[$type][$base] = $path . DIR_SEP . $file;
+								}
+							}
+						}
+					}
 				}
+				
+				// GET TEMPLATE DIRECTORYS & TEMPLATES
 				$template_dir = isset($conf['template_dir']) ? $conf['TEMPLATE_DIR'] : static::DIR_TEMPLATE;
-				if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $template_dir))
+				if (is_dir(PY_ROOT . DIR_SEP . $mod . DIR_SEP . $template_dir)) {
 					array_push($PY['TEMPLATE_PATH'], $mod . DIR_SEP . $template_dir);
-				
-			}
-		}
-		
-		$extensions = explode(",", spl_autoload_extensions());
-		foreach ($this->CLASS_TYPES AS $type) {
-			foreach ($PY["{$type}_PATH"] AS $path) {
-				if (substr($path, -1) == DIR_SEP)
-					$path = substr($path, 0, -1);
-				
-				// 				foreach (scandir(PY_ROOT . DIR_SEP . $path) AS $file) {
-				foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(PY_ROOT . DIR_SEP . $path, \FilesystemIterator::SKIP_DOTS)) as $filePath => $fileObj) {
-					if (array_search("." . pathinfo($filePath, PATHINFO_EXTENSION), $extensions) !== false) {
-						$file = str_replace(PY_ROOT . DIR_SEP . $path. DIR_SEP, "", $filePath);
-						$base = substr($file, 0, strpos($file, "."));
-						$filePath = $path . DIR_SEP . $file;
-						if ( !isset($PY[$type][$base])) {
-							$PY[$type][$base] = $filePath;
+					if (substr($path = $mod . DIR_SEP . $template_dir, -1) == DIR_SEP)
+						$path = substr($path, 0, -1);
+					foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(PY_ROOT . DIR_SEP . $path, \FilesystemIterator::SKIP_DOTS)) as $filePath => $fileObj) {
+						if (array_search(pathinfo($filePath, PATHINFO_EXTENSION), $this->OUTPUT_TYPES) !== false && basename($filePath) != "index.php") {
+							$file = str_replace(PY_ROOT . DIR_SEP . $path . DIR_SEP, "", $filePath);
+							$file = str_replace(DIR_SEP, "-", $file);
+							if ( !isset($PY["TEMPLATES"][$base = substr($file, 0, strpos($file, "."))])) {
+								$PY["TEMPLATES"][$base] = $path . DIR_SEP . $base;
+							}
 						}
 					}
 				}
 			}
 		}
 		
+		# PREPARE LOADING SORT
 		for ($p = 0; $p < $this->TYPE_COUNT; $p++ ) {
 			if ( !isset($load[$p]))
 				continue;
@@ -310,7 +362,6 @@ class System implements \SystemInterface
 		
 		if ($return)
 			return $PY;
-		
 		return true;
 	}
 	

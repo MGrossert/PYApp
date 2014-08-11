@@ -1,7 +1,7 @@
 {
-    "author": "Martin Grossert",
-    "desc": "",
-    "type": "core",
-    "dir": "system",
-    "name": "system"
+    "author":"Martin Grossert",
+    "desc":"",
+    "type":"core",
+    "dir":"system",
+    "name":"system"
 }
