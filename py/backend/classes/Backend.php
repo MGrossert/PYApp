@@ -1,5 +1,7 @@
 <?php
 
+use PY\System;
+
 use PY\UI;
 
 class Backend extends UI
@@ -13,7 +15,8 @@ class Backend extends UI
 	
 	function initialize ()
 	{
-
+		$template = new PY\TemplateEngine("backend");
+		echo $template->getResult();
 	}
 	
 }
