@@ -26,8 +26,6 @@ class HookRegistry extends ObjectList implements \HookRegistryInterface
 	function register ($name, $func)
 	{
 		$hook = $this->get($name);
-		var_export($hook);
-		var_export($func);
 		return ($hook) ? $hook->register($func) : false;
 	}
 	

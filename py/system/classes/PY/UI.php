@@ -4,43 +4,56 @@ namespace PY {
 
 use \Singleton;
 
-class UI
-{
+class UI {
 	use Singleton;
-	
-	var $self = false;
-	var $output_type = "html";
-	
-	function __initialize ()
-	{
-		
-		# only on first load
-		ob_start();
-		
-		# url
-		$this->self = str_replace("index.php", "", $_SERVER["REQUEST_URI"]);
-		if ( !defined("_SELF"))
-			define("PY_SELF", $this->self);
+
+	protected $_SELF = false;
+	protected $OUTPUT_TYPE = "html";
+
+	function __initialize() {
+		# URL
+		$this->_SELF = $_SERVER["PHP_SELF"] = $_SERVER["REDIRECT_URL"] = !isset(
+				$_SERVER["REDIRECT_URL"]) ? preg_replace('/index\.php$/', '',
+						$_SERVER["PHP_SELF"]) : $_SERVER["REDIRECT_URL"];
+		if (!defined("_SELF"))
+			define("PY_SELF", $this->_SELF);
+
+		# Query String	
+		$_SERVER["QUERY_STRING"] = $_SERVER["REDIRECT_QUERY_STRING"] = !isset(
+				$_SERVER["REDIRECT_QUERY_STRING"]) ? $_SERVER["QUERY_STRING"]
+				: $_SERVER["REDIRECT_QUERY_STRING"];
 		
 		# output type
-		if ( !isset($this->output_type)) {
+		if (!isset($this->OUTPUT_TYPE)) {
 			switch (true) {
-				default:
-					$this->output_type = "html";
-					break;
-				case (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest"):
-					$this->output_type = "js";
-					break;
-				case (false):
-					$this->output_type = "xml";
-					break;
-				case (isset($_REQUEST['py_output_type'])): // sinnvoll?
-					$this->output_type = strtolower($_REQUEST['py_output_type']);
+			default:
+			case pathinfo($this->_SELF, PATHINFO_EXTENSION) == "html":
+				$this->OUTPUT_TYPE = "html";
+				break;
+			case pathinfo($this->_SELF, PATHINFO_EXTENSION) == "json":
+			case (isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+					&& $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest"):
+				$this->OUTPUT_TYPE = "json";
+				break;
+			case pathinfo($this->_SELF, PATHINFO_EXTENSION) == "xml":
+				$this->OUTPUT_TYPE = "xml";
+				break;
+			case (isset($_REQUEST['py_OUTPUT_TYPE'])): // sinnvoll?
+				$this->OUTPUT_TYPE = strtolower($_REQUEST['py_output_type']);
 			}
 		}
+
+	}
+
+	function execute() {
+		$template = System::getInstance()->service()
+				->get("template", false, array("document"));
+		$template->head = "";
+		$template->content = "";
+		echo $template->getOutput();
 		
 	}
-	
+
 }
 
 }

@@ -4,19 +4,17 @@ use PY\System;
 
 use PY\UI;
 
-class Backend extends UI
-{
-	
-	function __initialize ()
-	{
+class Backend extends UI {
+
+	function __initialize() {
 		parent::__initialize();
-		
+
 	}
-	
-	function initialize ()
-	{
-		$template = new PY\TemplateEngine("backend");
-		echo $template->getResult();
+
+	function initialize() {
+		parent::initialize();
+		// $template = new PY\TemplateEngine("backend");
+		// echo $template->getResult();
 	}
-	
+
 }

@@ -3,14 +3,20 @@ PYApp
 
 PY Application Framework
 
+* multiple applications 
 
 
 concepts
 --------
+* service/object registry 
+	* interface based 
+	* allows to replace almost every module
+* dynamic structure
+	* file based / preprocessed - configured
 * modular
-	* every feature is an module
+	* every almost feature is an module or can be replaced by a module
 * oop
-			
+* mvc
 
 requirements
 ------------

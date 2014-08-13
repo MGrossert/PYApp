@@ -15,7 +15,7 @@ const PY_ROOT = __DIR__;
 require('function.php');	# core functions
 
 # initalize core
-include('system'.DIR_SEP.'classes'.DIR_SEP.'System.php');	# system class
+include('system'.DIR_SEP.'classes'.DIR_SEP.'PY'.DIR_SEP.'System.php');	# system class
 use PY\System;
 $system = System::getInstance();
 $system->initialize();

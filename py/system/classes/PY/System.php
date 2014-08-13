@@ -191,9 +191,9 @@ class System implements \SystemInterface
 				continue;
 			
 			if (is_file($initFile = $path . DIR_SEP . "initialize.php")) {
-				ob_start();
+// 				ob_start();
 				require $initFile;
-				$ret = ob_get_clean();
+// 				$ret = ob_get_clean();
 				if ( !empty($ret))
 					$PY['MESSAGE'][] = $ret;
 			}
@@ -214,10 +214,10 @@ class System implements \SystemInterface
 	
 	#######################################
 	# TEMPLATE PROVIDER
-	
+
 	function getTemplate ($view)
 	{
-		if ( empty($view)) {
+		if (empty($view)) {
 			return false;
 		}
 		
@@ -245,7 +245,12 @@ class System implements \SystemInterface
 		return $PY;
 	}
 	
-	function readStructure ($return = false)
+	function parseStructure ()
+	{
+		return $this->readStructure(true);
+	}
+	
+	private function readStructure ($return = false)
 	{
 		if ( !$return)
 			$PY = &$this->PY;

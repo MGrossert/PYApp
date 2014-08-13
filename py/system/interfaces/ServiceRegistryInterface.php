@@ -43,13 +43,13 @@ interface ServiceRegistryInterface
 	function getServiceList ($type);
 	
 	/**
-	 *	get a special service
+	 * get a special service
 	 *
 	 * @param unknown $name
 	 * @param string $name (optional)
 	 * @return Ambigous <boolean, stdClass>
 	 */
-	function get ($type, $name = false);
+	function get ($type, $name = false, $args = array());
 	
 	/**
 	 * get a service type object

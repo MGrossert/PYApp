@@ -5,7 +5,7 @@
 
 $callable = array(
     Backend::getInstance(),
-    "initialize"
+    "execute"
 );
 
 $system->service()->get('hook')->register(PY_HOOK_INITIALIZED, $callable);
